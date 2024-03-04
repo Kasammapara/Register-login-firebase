@@ -2,6 +2,8 @@ import 'package:classword/home.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:mailer/mailer.dart';
+import 'package:mailer/smtp_server.dart';
 
 import 'HomeScreen.dart';
 import 'Login.dart';
@@ -53,7 +55,7 @@ class _RegisterPageState extends State<RegisterPage> {
           'password': passcontroller.hashCode,
           'timestamp': DateTime.now(),
         });
-
+        _sendmail();
         await FirebaseAuth.instance.createUserWithEmailAndPassword(
           email: emailcontroller.text,
           password: passcontroller.text,
@@ -69,6 +71,20 @@ class _RegisterPageState extends State<RegisterPage> {
       Navigator.of(context).pop();
       showErrorPopup('Error creating user: ${e.toString()}');
     }
+  }
+  void _sendmail() async{
+    String username = 'mustufamapara@gmail.com';
+    String password = 'hnfw mtsg vsig wioq';
+
+    final smtpServer = gmail(username, password);
+
+    final message = Message()
+      ..from = Address(username, 'Mustafa Mapara')
+      ..recipients.add(emailcontroller.text)
+      ..subject = 'Successfully registered ${DateTime.now()}'
+      ..text = 'Hello there! you have been registered';
+    print(message);
+    await send(message, smtpServer);
   }
 
   void showLoadingDialog() {
@@ -138,176 +154,178 @@ class _RegisterPageState extends State<RegisterPage> {
         title: Center(child: Text("Register Page")),
         backgroundColor: Colors.greenAccent,
       ),
-      body: Form(
-        key: _formKey,
-        child: Center(
-          child: Column(
-            children: [
-              SizedBox(height: 20,),
-              Container(
-                child: Text("Register Here"
-                ,style: TextStyle(
-                    fontSize: 20,
-                  ),),
-              ),
-
-              //UserName
-              SizedBox(height: 20,),
-              Row(
-                children: [SizedBox(width: 55,),
-                  Container(child: Text("Username",
+      body: SingleChildScrollView(
+        child: Form(
+          key: _formKey,
+          child: Center(
+            child: Column(
+              children: [
+                SizedBox(height: 20,),
+                Container(
+                  child: Text("Register Here"
+                  ,style: TextStyle(
+                      fontSize: 20,
+                    ),),
+                ),
+        
+                //UserName
+                SizedBox(height: 20,),
+                Row(
+                  children: [SizedBox(width: 55,),
+                    Container(child: Text("Username",
+                      style: TextStyle(
+                        fontSize: 15,
+                      ),),),
+                  ],
+                ),
+                SizedBox(height: 5,),
+                Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 50),
+                    child: TextFormField(
+                      validator: (value){
+                        if(value==null||value.isEmpty){return 'Please enter some text';}
+                        return null;
+                      },
+                      textInputAction: TextInputAction.done,
+                      controller: usercontroller,
+                      style: TextStyle(color: Colors.black),
+                      decoration: InputDecoration(
+                        contentPadding: EdgeInsets.all(10.0),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(15.0),
+                        ),
+                        hintText: "Enter Your UserName",
+                      ),
+                    )
+                ),
+        
+                SizedBox(height: 20,),
+                Row(
+                  children: [SizedBox(width: 55,),
+                    Container(child: Text("Email",
                     style: TextStyle(
                       fontSize: 15,
                     ),),),
-                ],
-              ),
-              SizedBox(height: 5,),
-              Padding(
+                  ],
+                ),
+                SizedBox(height: 5,),
+                Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 50),
                   child: TextFormField(
-                    validator: (value){
-                      if(value==null||value.isEmpty){return 'Please enter some text';}
-                      return null;
-                    },
+                    keyboardType: TextInputType.emailAddress,
                     textInputAction: TextInputAction.done,
-                    controller: usercontroller,
+                    validator: validateEmail,
+                    controller: emailcontroller,
                     style: TextStyle(color: Colors.black),
                     decoration: InputDecoration(
                       contentPadding: EdgeInsets.all(10.0),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(15.0),
                       ),
-                      hintText: "Enter Your UserName",
-                    ),
-                  )
-              ),
-
-              SizedBox(height: 20,),
-              Row(
-                children: [SizedBox(width: 55,),
-                  Container(child: Text("Email",
-                  style: TextStyle(
-                    fontSize: 15,
-                  ),),),
-                ],
-              ),
-              SizedBox(height: 5,),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 50),
-                child: TextFormField(
-                  keyboardType: TextInputType.emailAddress,
-                  textInputAction: TextInputAction.done,
-                  validator: validateEmail,
-                  controller: emailcontroller,
-                  style: TextStyle(color: Colors.black),
-                  decoration: InputDecoration(
-                    contentPadding: EdgeInsets.all(10.0),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(15.0),
-                    ),
-                    hintText: "Enter Your Email",
+                      hintText: "Enter Your Email",
+                  ),
+                )
                 ),
-              )
-              ),
-
-
-
-
-
-              SizedBox(height: 20,),
-              Row(
-                children: [SizedBox(width: 55,),
-                  Container(child: Text("Password",
-                    style: TextStyle(
-                      fontSize: 15,
-                    ),),),
-                ],
-              ),
-              SizedBox(height: 5,),
-              Padding(
-
-                  padding: const EdgeInsets.symmetric(horizontal: 50),
-                  child: TextFormField(
-                    validator: (value){
-                      if(value==null||value.isEmpty){return 'Please enter some text';}
-                      return null;
-                    },
-                    obscureText: true,
-                    controller: passcontroller,
-                    style: TextStyle(color: Colors.black),
-                    decoration: InputDecoration(
-                      contentPadding: EdgeInsets.all(10.0),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(15.0),
-                      ),
-                      hintText: "Enter Your Password",
-                    ),
-                  )
-              ),
-
-              SizedBox(height: 20,),
-              Row(
-                children: [SizedBox(width: 55,),
-                  Container(child: Text("Confirm Password",
-                    style: TextStyle(
-                      fontSize: 15,
-                    ),),),
-                ],
-              ),
-              SizedBox(height: 5,),
-              Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 50),
-                  child: TextFormField(
-                    obscureText: true,
-                    validator: (value){
-                      if(value==null||value.isEmpty){return 'Please enter some text';}
-                      else if(value != passcontroller.text){return 'Both Password must be same';}
-                      return null;
-                    },
-                    controller: pass1controller,
-                    style: TextStyle(color: Colors.black),
-                    decoration: InputDecoration(
-                      contentPadding: EdgeInsets.all(10.0),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(15.0),
-                      ),
-                      hintText: "Enter Your Password Again",
-
-                    ),
-                  )
-              ),
-
-
-              SizedBox(height: 20,),
-          GestureDetector(
-            onTap: signup,
-            child: Center(
-              child: Container(
-                decoration: BoxDecoration(
-                    color:Colors.lightGreen,
-                    borderRadius: BorderRadius.circular(10)
+        
+        
+        
+        
+        
+                SizedBox(height: 20,),
+                Row(
+                  children: [SizedBox(width: 55,),
+                    Container(child: Text("Password",
+                      style: TextStyle(
+                        fontSize: 15,
+                      ),),),
+                  ],
                 ),
-
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 40,vertical: 20),
-                  child: Text("Register"
-                    ,style: TextStyle(color:Colors.black,fontWeight: FontWeight.bold,),
+                SizedBox(height: 5,),
+                Padding(
+        
+                    padding: const EdgeInsets.symmetric(horizontal: 50),
+                    child: TextFormField(
+                      validator: (value){
+                        if(value==null||value.isEmpty){return 'Please enter some text';}
+                        return null;
+                      },
+                      obscureText: true,
+                      controller: passcontroller,
+                      style: TextStyle(color: Colors.black),
+                      decoration: InputDecoration(
+                        contentPadding: EdgeInsets.all(10.0),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(15.0),
+                        ),
+                        hintText: "Enter Your Password",
+                      ),
+                    )
+                ),
+        
+                SizedBox(height: 20,),
+                Row(
+                  children: [SizedBox(width: 55,),
+                    Container(child: Text("Confirm Password",
+                      style: TextStyle(
+                        fontSize: 15,
+                      ),),),
+                  ],
+                ),
+                SizedBox(height: 5,),
+                Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 50),
+                    child: TextFormField(
+                      obscureText: true,
+                      validator: (value){
+                        if(value==null||value.isEmpty){return 'Please enter some text';}
+                        else if(value != passcontroller.text){return 'Both Password must be same';}
+                        return null;
+                      },
+                      controller: pass1controller,
+                      style: TextStyle(color: Colors.black),
+                      decoration: InputDecoration(
+                        contentPadding: EdgeInsets.all(10.0),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(15.0),
+                        ),
+                        hintText: "Enter Your Password Again",
+        
+                      ),
+                    )
+                ),
+        
+        
+                SizedBox(height: 20,),
+            GestureDetector(
+              onTap: signup,
+              child: Center(
+                child: Container(
+                  decoration: BoxDecoration(
+                      color:Colors.lightGreen,
+                      borderRadius: BorderRadius.circular(10)
+                  ),
+        
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 40,vertical: 20),
+                    child: Text("Register"
+                      ,style: TextStyle(color:Colors.black,fontWeight: FontWeight.bold,),
+                    ),
                   ),
                 ),
               ),
             ),
-          ),
-              GestureDetector(
-                child: Text("Already Login?"),
-                onTap: (){
-                  Navigator.pushAndRemoveUntil(context,  MaterialPageRoute(builder: (context) => LoginPage()), (route) => false);
-                  // Navigator.pushAndRemoveUntil(
-                  //   context,
-                  //   MaterialPageRoute(builder: (context) => LoginPage(),(route) => false)),
-                  // );
-                },
-              )
-            ],
+                GestureDetector(
+                  child: Text("Already Login?"),
+                  onTap: (){
+                    Navigator.pushAndRemoveUntil(context,  MaterialPageRoute(builder: (context) => LoginPage()), (route) => false);
+                    // Navigator.pushAndRemoveUntil(
+                    //   context,
+                    //   MaterialPageRoute(builder: (context) => LoginPage(),(route) => false)),
+                    // );
+                  },
+                )
+              ],
+            ),
           ),
         ),
       ),
